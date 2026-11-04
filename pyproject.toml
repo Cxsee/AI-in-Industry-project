@@ -1,0 +1,44 @@
+[project]
+name = "movierec"
+version = "0.1.0"
+description = "Movie recommendations beyond accuracy: classic, LLM and constrained hybrid recommenders compared."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Andrea Caselli" }, { name = "Francesco Forlani" }]
+dependencies = [
+    "numpy>=2.0",
+    "ortools>=9.10",
+    "polars>=1.0",
+    "scipy>=1.13",
+]
+
+[project.optional-dependencies]
+# Heavier parts of the stack: install only what you are working on.
+mf = ["implicit>=0.7.2"]
+content = ["sentence-transformers>=3.0"]
+llm = ["ollama>=0.4"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29",
+    "jupyterlab>=4.2",
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/movierec"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
