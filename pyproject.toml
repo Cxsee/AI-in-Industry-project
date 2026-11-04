@@ -3,7 +3,7 @@ name = "movierec"
 version = "0.1.0"
 description = "Movie recommendations beyond accuracy: classic, LLM and constrained hybrid recommenders compared."
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.15"
 authors = [{ name = "Andrea Caselli" }, { name = "Francesco Forlani" }]
 dependencies = [
     "numpy>=2.0",

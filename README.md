@@ -6,48 +6,61 @@ exposure and cost.
 
 Andrea Caselli and Francesco Forlani · AI in Industry exam project + Project Work
 
-## Setup
+## How we work
 
-You need [uv](https://docs.astral.sh/uv/); it installs Python 3.12 by itself.
-
-```bash
-uv sync
-uv run pytest
-```
-
-The heavier parts of the stack are optional, so install only what you are working on:
-
-| Extra | Used for | Install with |
-| --- | --- | --- |
-| `mf` | Matrix factorization (`implicit`) | `uv sync --extra mf` |
-| `content` | Content-based embeddings (`sentence-transformers`) | `uv sync --extra content` |
-| `llm` | LLM ranker through Ollama | `uv sync --extra llm` |
-
-`uv sync` removes whatever you don't ask for, so pass every extra you need each time.
-
-## Layout
+We write and run the code on Google Colab and version it on GitHub. Datasets and results stay on
+Google Drive.
 
 ```text
-src/movierec/   project code
+src/movierec/   code shared between notebooks
+notebooks/      one notebook per activity, each with one owner
 tests/          tests
-notebooks/      exploration and result analysis
-data/           datasets (not committed)
-results/        experiment outputs (not committed)
+data/           datasets (local runs only, not committed)
+results/        outputs (local runs only, not committed)
 ```
 
-Copy `.env.example` to `.env` to change the data folders or the Ollama server.
+## First setup on Colab
 
-## Before committing
+1. Create a GitHub token that can read this repo.
+2. In Colab, add it under **Secrets** (key icon) with the name `GITHUB_TOKEN`.
+3. Open [`notebooks/00_colab_setup.ipynb`](https://colab.research.google.com/github/Cxsee/AI-in-Industry-project/blob/main/notebooks/00_colab_setup.ipynb)
+   and run it. All the tests should pass.
+4. Copy its setup cell at the top of every new notebook.
+
+Everything that isn't on Drive is lost when the Colab session ends, so save model outputs and LLM
+answers to `paths.results_dir()` as you go.
+
+## Saving your work
+
+- **Notebooks:** use **File → Save a copy in GitHub** and pick your branch. Create the branch on
+  GitHub first.
+- **Clear the outputs before saving:** **Edit → Clear all outputs**. Save the plots you need to
+  `paths.results_dir()`.
+- **Code in `src/movierec/`:** edit it on GitHub or locally, then run `git pull` in the notebook.
+- **Changes to `main`:** go through a pull request, reviewed by the other person.
+
+Two people editing the same notebook produce conflicts that are hard to merge, so each notebook has
+one owner. Notebooks exchange data through Parquet files on Drive.
+
+## Optional extras
+
+| Extra | Used for |
+| --- | --- |
+| `mf` | Matrix factorization (`implicit`) |
+| `content` | Content-based embeddings (`sentence-transformers`) |
+| `llm` | LLM ranker through Ollama |
+
+On Colab, set them in `EXTRAS` in the setup cell.
+
+## Running locally
+
+You need [uv](https://docs.astral.sh/uv/); it installs Python by itself.
 
 ```bash
+uv sync --extra mf
+uv run pytest
 uv run ruff check .
 uv run ruff format .
-uv run pytest
 ```
 
-## Docker
-
-```bash
-docker build -t movierec .
-docker run --rm -v "$PWD/data:/data" -v "$PWD/results:/results" movierec
-```
+`uv sync` removes whatever you don't ask for, so pass every extra you need each time.
