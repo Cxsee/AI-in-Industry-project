@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12, <3.15"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -1177,9 +1177,11 @@ name = "movierec"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "beautifulsoup4" },
     { name = "numpy" },
     { name = "ortools" },
     { name = "polars" },
+    { name = "requests" },
     { name = "scipy" },
 ]
 
@@ -1204,11 +1206,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "beautifulsoup4", specifier = ">=4.12" },
     { name = "implicit", marker = "extra == 'mf'", specifier = ">=0.7.2" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "ollama", marker = "extra == 'llm'", specifier = ">=0.4" },
     { name = "ortools", specifier = ">=9.10" },
     { name = "polars", specifier = ">=1.0" },
+    { name = "requests", specifier = ">=2.32" },
     { name = "scipy", specifier = ">=1.13" },
     { name = "sentence-transformers", marker = "extra == 'content'", specifier = ">=3.0" },
 ]
