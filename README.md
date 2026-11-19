@@ -101,3 +101,5 @@ strictly before their author's last fitting rating. Validation fits on train; te
 uses train + validation and requires the configuration saved in validation. Missing
 plots use genres/tags; users without a usable liked-film profile receive a recorded
 Popularity fallback. Read the notebook and `decisions.md` for the protocol and limits.
+
+Validation results and limitations: [19 November 2026 report](reports/validation_2026-11-19.md).
