@@ -225,3 +225,21 @@ def test_notebook_validation_plot_availability_uses_only_fitting_catalog(tmp_pat
     texts = scope["texts"]
     assert texts.filter(pl.col("movieId") == 10)["text_source"].item() == "plot"
     assert texts.filter(pl.col("movieId") == 30)["text_source"].item() == "genres_tags"
+
+
+def test_embedding_cache_reuses_unchanged_shards_as_plots_arrive(tmp_path):
+    model = FakeEncoder()
+    initial = pl.DataFrame({"movieId": [10, 20], "text": ["1 2", "3 4"]})
+    before = encode_movie_texts(
+        initial, model, tmp_path, model_id="fake", revision="v1", checkpoint_movies=1
+    )
+    assert len(model.calls) == 2
+    updated = initial.with_columns(
+        pl.when(pl.col("movieId") == 20).then(pl.lit("9")).otherwise(pl.col("text")).alias("text")
+    )
+    after = encode_movie_texts(
+        updated, model, tmp_path, model_id="fake", revision="v1", checkpoint_movies=1
+    )
+    assert len(model.calls) == 3
+    np.testing.assert_array_equal(after[0], before[0])
+    assert not np.array_equal(after[1], before[1])

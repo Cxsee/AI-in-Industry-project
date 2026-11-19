@@ -126,7 +126,6 @@ def encode_movie_texts(
         model.max_seq_length,
         checkpoint_movies,
         "token-weighted-chunks-v1",
-        texts.rows(),
     ]
     fingerprint = hashlib.sha256(json.dumps(spec, ensure_ascii=False).encode()).hexdigest()
     root = Path(cache_dir) / fingerprint
@@ -139,7 +138,10 @@ def encode_movie_texts(
     for offset in range(0, texts.height, checkpoint_movies):
         shard = texts.slice(offset, checkpoint_movies)
         ids = shard["movieId"].to_numpy()
-        path = root / f"{offset:07d}.npz"
+        shard_key = hashlib.sha256(
+            json.dumps(shard.rows(), ensure_ascii=False).encode()
+        ).hexdigest()
+        path = root / f"{shard_key}.npz"
         if path.is_file():
             with np.load(path, allow_pickle=False) as cached:
                 vectors = cached["embeddings"]
