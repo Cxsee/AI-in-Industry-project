@@ -150,3 +150,29 @@ def test_bounded_workers_keep_complete_ordered_checkpoints(workflow, tmp_path):
     records = w["checkpoint_results"](population, tmp_path)
     assert records["movieId"].to_list() == list(range(1, 9))
     assert 1 < state["maximum"] <= 4
+
+
+def test_slow_first_page_does_not_starve_other_movies(workflow, tmp_path):
+    import threading
+
+    w = workflow
+    release = threading.Event()
+    population = pl.DataFrame(
+        {
+            "movieId": [1, 2, 3],
+            "title": ["Film"] * 3,
+            "imdbId": ["tt0000001", "tt0000002", "tt0000003"],
+        }
+    )
+
+    def extract(movie, *_):
+        if movie["movieId"] == 1:
+            assert release.wait(timeout=2), "A slow first page prevented later work from starting"
+        elif movie["movieId"] == 3:
+            release.set()
+        return w["result"](movie, "no_plot_section")
+
+    w["EXTRACTION_WORKERS"] = 2
+    w["extract_movie"] = extract
+    w["process_pending"](population, tmp_path)
+    assert w["checkpoint_results"](population, tmp_path)["movieId"].to_list() == [1, 2, 3]
