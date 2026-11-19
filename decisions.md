@@ -46,3 +46,9 @@ Aggiornato il 13 novembre 2026. Per chiudere una voce, annotare la scelta, la da
   utilizzabile: fallback Popularity della sola finestra ammessa, riportato separatamente.
 - Queste sono scelte implementative da controllare nella PR, non risultati sperimentali.
   La copertura finale viene dal run completo: non estendere il 73% del pilot al catalogo.
+
+- Disponibilità delle trame nei profili: si usano embedding delle trame solo per film
+  nel catalogo della finestra di fitting. Per i film apprezzati fuori da quel catalogo
+  si applica sempre il fallback generi/tag, anche se una trama è presente nell'export
+  experiments costruito da train + val. In questo modo la disponibilità delle feature
+  in validation non dipende dai conteggi futuri usati per estrarre il catalogo completo.

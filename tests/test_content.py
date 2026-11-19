@@ -165,3 +165,63 @@ def test_missing_embedding_and_nonfinite_vectors_fail():
         recommend_content(history, users, np.array([1]), np.ones((1, 2)), catalog)
     with pytest.raises(ValueError, match="finite"):
         recommend_content(history, users, np.array([2]), np.array([[np.nan, 0]]), catalog)
+
+
+def test_notebook_validation_plot_availability_uses_only_fitting_catalog(tmp_path):
+    import json
+
+    notebook = json.loads(
+        (Path(__file__).parents[1] / "notebooks/04_content_based.ipynb").read_text(encoding="utf-8")
+    )
+    # Film 30 becomes experiment-eligible only after validation ratings are counted.
+    # User 1 liked it in train: its profile text must still use fitting-only fallback.
+    ratings = pl.DataFrame(
+        {
+            "userId": [1, 2, 3, 3, 1, 2],
+            "movieId": [30, 10, 10, 20, 20, 30],
+            "rating": [5.0, 5.0, 5.0, 4.0, 5.0, 5.0],
+            "timestamp": [5, 5, 5, 5, 10, 10],
+            "split": ["train", "train", "train", "train", "val", "val"],
+        }
+    )
+    ratings.write_parquet(tmp_path / "ratings.parquet")
+    pl.DataFrame({"movieId": [10, 20, 30], "genres": [["Drama"]] * 3}).write_parquet(
+        tmp_path / "movies.parquet"
+    )
+    pl.DataFrame(
+        {
+            "movieId": [10, 20, 30],
+            "status": ["ok"] * 3,
+            "plot": ["Accepted text"] * 3,
+            "plot_language": ["en"] * 3,
+        }
+    ).write_parquet(tmp_path / "plots.parquet")
+    pl.DataFrame({"movieId": [10, 20, 30]}).write_parquet(tmp_path / "experiment_movies.parquet")
+    pl.DataFrame({"userId": [1, 2], "sample_rank": [1, 2]}).write_parquet(
+        tmp_path / "users_sample.parquet"
+    )
+    pl.DataFrame(
+        schema={"userId": pl.Int64, "movieId": pl.Int64, "timestamp": pl.Int64, "tag": pl.String}
+    ).write_parquet(tmp_path / "tags.parquet")
+    scope = {
+        "pl": pl,
+        "display": lambda _: None,
+        "json": json,
+        "fitting_history": fitting_history,
+        "movie_texts": movie_texts,
+        "DATA_DIR": tmp_path,
+        "RESULTS_DIR": tmp_path,
+        "PLOTS_PATH": tmp_path / "plots.parquet",
+        "PARAMS_PATH": tmp_path / "params.json",
+        "EVALUATION_SPLIT": "val",
+        "MODEL_ID": "fake",
+        "MODEL_REVISION": "v1",
+        "TOP_K": 2,
+        "MIN_RATINGS": 2,
+        "RELEVANT_RATING": 4.0,
+        "MAX_TAGS": 20,
+    }
+    exec("".join(notebook["cells"][4]["source"]), scope)
+    texts = scope["texts"]
+    assert texts.filter(pl.col("movieId") == 10)["text_source"].item() == "plot"
+    assert texts.filter(pl.col("movieId") == 30)["text_source"].item() == "genres_tags"
