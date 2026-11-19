@@ -9,6 +9,8 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import polars as pl
 
+from movierec.paths import replace_file
+
 
 def fitting_history(ratings: pl.LazyFrame, split: str = "val") -> pl.LazyFrame:
     """Match the fitting windows used by Popularity and MF."""
@@ -93,7 +95,7 @@ def _atomic_npz(path: Path, **arrays) -> None:
         temporary = Path(file.name)
     try:
         np.savez_compressed(temporary, **arrays)
-        temporary.replace(path)
+        replace_file(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
 
