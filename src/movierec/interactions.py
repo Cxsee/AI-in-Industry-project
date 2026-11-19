@@ -52,3 +52,25 @@ def rankings_frame(
     return frame.with_columns(
         pl.Series("movieId", np.asarray(movie_ids)[frame["column"].to_numpy()])
     ).select("userId", "movieId", "rank", "score")
+
+
+def mixed_candidates(head: pl.DataFrame, tail: pl.DataFrame) -> pl.DataFrame:
+    """Merge each user's head and long-tail candidates into one list.
+
+    Both frames have `userId`, `movieId`, `rank` and `score`, from the same model, and no
+    movie may appear in both for the same user. The result is ranked again from 1 by score,
+    best first, with ties broken by `movieId`, and keeps the origin in `is_long_tail`.
+    """
+    merged = pl.concat(
+        [
+            head.with_columns(pl.lit(False).alias("is_long_tail")),
+            tail.with_columns(pl.lit(True).alias("is_long_tail")),
+        ]
+    )
+    if merged.select("userId", "movieId").is_duplicated().any():
+        raise ValueError("A movie is both a head and a long-tail candidate for the same user.")
+    return (
+        merged.sort(["userId", "score", "movieId"], descending=[False, True, False])
+        .with_columns(pl.int_range(1, pl.len() + 1, dtype=pl.Int64).over("userId").alias("rank"))
+        .select("userId", "movieId", "rank", "score", "is_long_tail")
+    )
