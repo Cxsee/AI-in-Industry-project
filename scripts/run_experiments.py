@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 
-def execute_cells(path: Path, scope: dict, *, budget: int | None = None) -> None:
+def execute_cells(path: Path, scope: dict, *, budget: int | None = None, workers: int = 1) -> None:
     notebook = json.loads(path.read_text(encoding="utf-8"))
     for index, cell in enumerate(notebook["cells"]):
         # Colab mounting/install/checkout is unnecessary and unsafe in a local runner.
@@ -15,6 +15,7 @@ def execute_cells(path: Path, scope: dict, *, budget: int | None = None) -> None
         exec(compile("".join(cell["source"]), f"{path.name} cell {index}", "exec"), scope)
         if budget is not None and index == 2:
             scope["MAX_MOVIES_PER_RUN"] = budget
+            scope["EXTRACTION_WORKERS"] = workers
 
 
 def main() -> int:
@@ -24,6 +25,7 @@ def main() -> int:
     parser.add_argument(
         "--max-movies", type=int, default=100, help="Attempt budget, including retries"
     )
+    parser.add_argument("--workers", type=int, choices=range(1, 5), default=1)
     parser.add_argument("--run-content-after", action="store_true")
     args = parser.parse_args()
     if args.max_movies < 1:
@@ -38,7 +40,7 @@ def main() -> int:
     scope = {"__name__": "__plots_run__"}
     remaining = args.max_movies
     budget = min(40, remaining)
-    execute_cells(notebooks / "01b_plots.ipynb", scope, budget=budget)
+    execute_cells(notebooks / "01b_plots.ipynb", scope, budget=budget, workers=args.workers)
     while True:
         remaining -= budget
         plots = scope["checkpoint_results"](scope["selected"], scope["checkpoint_root"])

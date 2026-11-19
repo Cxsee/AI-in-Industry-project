@@ -118,3 +118,35 @@ def test_full_article_plot_section_excludes_lead_tables_and_subsections(workflow
     assert workflow["section_prose"](old_heading, "Trama") == "Una storia."
     with pytest.raises(workflow["RemoteError"], match="anchor"):
         workflow["section_prose"](html, "missing")
+
+
+def test_bounded_workers_keep_complete_ordered_checkpoints(workflow, tmp_path):
+    import threading
+    import time
+
+    w = workflow
+    population = pl.DataFrame(
+        {
+            "movieId": list(range(1, 9)),
+            "title": ["Film"] * 8,
+            "imdbId": [f"tt{i:07d}" for i in range(1, 9)],
+        }
+    )
+    lock = threading.Lock()
+    state = {"active": 0, "maximum": 0}
+
+    def extract(movie, *_):
+        with lock:
+            state["active"] += 1
+            state["maximum"] = max(state["maximum"], state["active"])
+        time.sleep(0.02)
+        with lock:
+            state["active"] -= 1
+        return w["result"](movie, "no_plot_section")
+
+    w["EXTRACTION_WORKERS"] = 4
+    w["extract_movie"] = extract
+    w["process_pending"](population, tmp_path)
+    records = w["checkpoint_results"](population, tmp_path)
+    assert records["movieId"].to_list() == list(range(1, 9))
+    assert 1 < state["maximum"] <= 4

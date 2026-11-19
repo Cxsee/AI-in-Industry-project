@@ -118,7 +118,14 @@ def encode_movie_texts(
     budget = model.max_seq_length - model.tokenizer.num_special_tokens_to_add(pair=False)
     if budget < 1:
         raise ValueError("The encoder has no space for text tokens.")
-    spec = [model_id, revision, model.max_seq_length, "token-weighted-chunks-v1", texts.rows()]
+    spec = [
+        model_id,
+        revision,
+        model.max_seq_length,
+        checkpoint_movies,
+        "token-weighted-chunks-v1",
+        texts.rows(),
+    ]
     fingerprint = hashlib.sha256(json.dumps(spec, ensure_ascii=False).encode()).hexdigest()
     root = Path(cache_dir) / fingerprint
     dim = (

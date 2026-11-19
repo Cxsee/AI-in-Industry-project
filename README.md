@@ -90,8 +90,9 @@ uv run --extra content python scripts/run_experiments.py --max-movies 30000 --ru
 ```
 
 The extractor retrieves text, Wikidata identity and revision in one parse response,
-then selects only the explicit plot section. Requests stay serial and respect API
-backoff. The runner stops on retryable service failures. Inspect the progress/error message and rerun the same command to resume.
+then selects only the explicit plot section. Requests respect API backoff. The default is one worker; the local runner
+accepts `--workers 2` through `--workers 4` for bounded concurrency with separate
+HTTP sessions and sequential checkpoint writes. The runner stops on retryable service failures. Inspect the progress/error message and rerun the same command to resume.
 Do not run two extraction processes against the same checkpoint directory.
 
 `04_content_based` uses pinned multilingual sentence embeddings, chunk pooling for
