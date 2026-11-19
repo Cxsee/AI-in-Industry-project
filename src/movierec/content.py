@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -106,6 +107,7 @@ def encode_movie_texts(
     revision: str,
     batch_size: int = 32,
     checkpoint_movies: int = 256,
+    progress: Callable[[int, int], None] | None = None,
 ) -> np.ndarray:
     """Encode all plot chunks; cache shards keyed by ordered IDs, texts and encoder.
 
@@ -172,6 +174,8 @@ def encode_movie_texts(
         if not np.isfinite(vectors).all():
             raise ValueError("Embeddings must be finite.")
         output[offset : offset + len(ids)] = vectors
+        if progress is not None:
+            progress(offset + len(ids), texts.height)
     return output
 
 
