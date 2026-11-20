@@ -1,6 +1,6 @@
 # Decisioni di progetto
 
-Aggiornato il 13 novembre 2026. Per chiudere una voce, annotare la scelta, la data e il link alla discussione o alla PR.
+Aggiornato il 20 novembre 2026. Per chiudere una voce, annotare la scelta, la data e il link alla discussione o alla PR.
 
 ## Prima di fissare dati e trame
 
@@ -17,6 +17,12 @@ Aggiornato il 13 novembre 2026. Per chiudere una voce, annotare la scelta, la da
 - [ ] **Protocollo del confronto finale.** Ratificare con il gruppo le convenzioni della validation e la loro applicazione al test. Decidere se affiancare al Recall una vista limitata ai positivi raccomandabili. Prima del confronto tra modelli, fissare il protocollo degli intervalli bootstrap al 95%, inclusi il ricampionamento degli stessi utenti per tutti i modelli e il trattamento della coverage globale. [PR #4](https://github.com/Cxsee/AI-in-Industry-project/pull/4), [Verifica progetto data](https://chatgpt.com/c/6af355b9-3138-83ed-ba5a-a0a0658d0870)
 - [ ] **Diversity ed exposure.** Decidere se riportare entrambe le misure di diversity (Jaccard sui generi e distanza coseno sugli embedding) e quale usare come misura principale. Concordare un'unica rappresentazione per il confronto e la gestione di generi o embedding mancanti. Usare un catalogo comune come denominatore della coverage e confermare il confine long-tail (l'head attuale contiene i film che raggiungono l'80% dei rating). [PR #4](https://github.com/Cxsee/AI-in-Industry-project/pull/4), [Verifica progetto data](https://chatgpt.com/c/6af355b9-3138-83ed-ba5a-a0a0658d0870)
 - [ ] **Discovery, cost e analisi LLM.** Fissare coorte e obiettivi di unfamiliar-interest per l'estensione MovieLens 32M del SIGIR 2025. Definire quali operazioni conteggiare nella latenza e come raccogliere token di input e output per utente. Per i tre ordini dei candidati previsti da `05_llm_ranker`, specificare come aggregare Kendall τ e trattare ranking incompleti o ex aequo. Concordare le fasce di popolarità e anno di uscita e l'analisi della posizione nel prompt. [Verifica progetto data](https://chatgpt.com/c/6af355b9-3138-83ed-ba5a-a0a0658d0870)
+
+## Prima del test: miglioramento del Content-Based
+
+- [ ] **Scelta del miglioramento con Andrea.** La baseline è implementata e valutata; il miglioramento resta da concordare. Prima del test finale, analizzare gli errori e scegliere quali varianti confrontare sulla sola validation, mantenendo gli stessi utenti, catalogo e protocollo degli altri modelli. Possibili esperimenti da discutere: ponderazione dei film apprezzati nel profilo, aggregazione del testo e degli embedding, contributo di generi/tag e correzione della concentrazione delle raccomandazioni. Nessuna variante è stata ancora approvata o selezionata.
+- **Evidenza del run completo del 19 novembre 2026.** Su 2.000 utenti (1.958 per l'accuratezza), il Content-Based ottiene Recall@10 = 0,003420 e NDCG@10 = 0,003603, contro 0,093520 e 0,101393 della MF. Long-tail share = 0,8296 e catalog coverage = 0,061580; Alone in the Dark (1982) compare per 1.066 utenti (53,3%). Il controllo di questa concentrazione fa parte dell'analisi da svolgere. Le trame disponibili sono 24.518 su 26.182 film (93,64%), con 1.664 casi di fallback. [Report completo](reports/validation_2026-11-19.md), [PR #9](https://github.com/Cxsee/AI-in-Industry-project/pull/9).
+- **Criterio da fissare prima degli esperimenti.** Concordare metriche di selezione, compromesso tra accuratezza ed esposizione long-tail e budget di confronto. Registrare configurazioni e risultati delle varianti; scegliere sulla validation, salvare la configurazione definitiva e solo dopo applicarla al test con train + validation. Il test finale non è stato eseguito e non deve guidare il tuning. Per chiudere questa voce, annotare la scelta condivisa, la data e il collegamento alla review o alla PR.
 
 ## Convenzioni già implementate
 
