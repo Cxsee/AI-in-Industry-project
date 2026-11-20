@@ -64,3 +64,42 @@ uv run ruff format .
 ```
 
 `uv sync` removes whatever you don't ask for, so pass every extra you need each time.
+
+## Validation comparison and Content-Based
+
+`07_comparison` evaluates the required `popularity_val.parquet` and `mf_val.parquet`
+files on the same saved users with `evaluate_validation`. It adds `content_val.parquet`
+when available. Outputs include `comparison_val.csv`, a wide comparison Parquet,
+a combined summary, and per-model/per-user metrics under `paths.results_dir()`.
+
+Wikipedia through Wikidata is the agreed plot source (confirmed 18 November 2026).
+`01b_plots` now defaults to `experiments` and reads `experiment_movies.parquet`.
+It can use the processed `movies.parquet`, so the MovieLens archive is optional.
+Start with a small attempt budget, inspect `plots_progress.json`, then resume the
+same checkpoint directory. Terminal missing plots and transient errors are distinct.
+Only a complete extraction writes `plots.parquet`, `plots_coverage.json` and
+`plots_fallback.parquet`; the coverage report includes languages and fallback counts.
+
+A local runner uses the same notebook code and checkpoints. Set `MOVIEREC_DATA_DIR`
+and `MOVIEREC_RESULTS_DIR` if datasets are outside the repository:
+
+```powershell
+uv run --extra content python scripts/run_experiments.py --max-movies 100
+# After checking the small run, complete extraction and then run Content-Based/comparison:
+uv run --extra content python scripts/run_experiments.py --max-movies 30000 --run-content-after
+```
+
+The extractor retrieves text, Wikidata identity and revision in one parse response,
+then selects only the explicit plot section. Requests respect API backoff. The default is one worker; the local runner
+accepts `--workers 2` through `--workers 4` for bounded concurrency with separate
+HTTP sessions and sequential checkpoint writes. The runner stops on retryable service failures. Inspect the progress/error message and rerun the same command to resume.
+Do not run two extraction processes against the same checkpoint directory.
+
+`04_content_based` uses pinned multilingual sentence embeddings, chunk pooling for
+long plots, mean liked-film profiles and cosine ranking. Tags are restricted to
+strictly before their author's last fitting rating. Validation fits on train; test
+uses train + validation and requires the configuration saved in validation. Missing
+plots use genres/tags; users without a usable liked-film profile receive a recorded
+Popularity fallback. Read the notebook and `decisions.md` for the protocol and limits.
+
+Validation results and limitations: [19 November 2026 report](reports/validation_2026-11-19.md).
