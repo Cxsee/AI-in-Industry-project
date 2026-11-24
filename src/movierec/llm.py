@@ -66,7 +66,10 @@ def user_message(
     n = len(candidates)
     kind = "number" if style == "numbers" else "letter"
     if top_n is None:
-        task = f"Rank these {n} candidate movies from most to least likely to be enjoyed by the user"
+        task = (
+            f"Rank these {n} candidate movies "
+            "from most to least likely to be enjoyed by the user"
+        )
         answer = f"listing every {kind} from {labels[0]} to {labels[-1]} exactly once, best first"
     else:
         task = f"Choose the {top_n} of these {n} candidate movies the user is most likely to enjoy"
